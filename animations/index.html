@@ -23,7 +23,7 @@
       position: absolute;
       left: 50%;
       transform: translateX(-50%);
-      color: #999;
+      color: #ffff00; /* 👈 黄色に変更 */
       font-size: 2rem;
       cursor: pointer;
       transition: opacity 0.5s ease;
@@ -119,7 +119,6 @@
       hideMessage(centerMsg);
       fadeIn(anim1Container);
       anim1.goToAndPlay(0, true);
-
       anim1.addEventListener('complete', onAnim1Complete);
     };
 
