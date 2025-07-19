@@ -88,7 +88,7 @@
         renderer: 'svg',
         loop: false,
         autoplay: false,
-        path: 'animations/test_01.json'
+        path: 'animations/animation%20test_01.json'
       });
 
       anim2 = lottie.loadAnimation({
@@ -96,7 +96,7 @@
         renderer: 'svg',
         loop: true,
         autoplay: false,
-        path: 'animations/test_02.json'
+        path: 'animations/animation%20test_02.json'
       });
 
       anim3 = lottie.loadAnimation({
@@ -104,7 +104,7 @@
         renderer: 'svg',
         loop: false,
         autoplay: false,
-        path: 'animations/test_03.json'
+        path: 'animations/animation%20test_03.json'
       });
     };
 
@@ -121,7 +121,7 @@
       anim1.goToAndPlay(0, true);
 
       anim1.addEventListener('complete', () => {
-        anim1.removeEventListener('complete'); // avoid duplicate triggers
+        anim1.removeEventListener('complete');
         showMessage(bottomMsg);
       });
     };
@@ -167,7 +167,6 @@
     };
 
     const restart = () => {
-      // Reset state
       hideMessage(restartMsg);
       fadeOut(anim3Container);
       setTimeout(() => {
