@@ -40,7 +40,8 @@
       transform: translate(-50%, -50%);
     }
 
-    #bottomMessage {
+    #bottomMessage,
+    #restartMessage {
       bottom: 5%;
     }
 
@@ -62,7 +63,7 @@
   <div id="container">
     <div id="centerMessage" class="message">tap（click）</div>
     <div id="bottomMessage" class="message hidden">tap（click）</div>
-    <div id="restartMessage" class="message hidden" style="bottom: 5%;">Restart</div>
+    <div id="restartMessage" class="message hidden">Restart</div>
     <div id="anim1" class="lottie"></div>
     <div id="anim2" class="lottie"></div>
     <div id="anim3" class="lottie"></div>
@@ -79,7 +80,6 @@
     const restartMsg = document.getElementById('restartMessage');
 
     let anim1, anim2, anim3;
-
     let currentStep = 0;
 
     const loadAnimations = () => {
@@ -88,7 +88,7 @@
         renderer: 'svg',
         loop: false,
         autoplay: false,
-        path: 'animations/animation%20test_01.json'
+        path: 'animations/animation_test_01.json'
       });
 
       anim2 = lottie.loadAnimation({
@@ -96,7 +96,7 @@
         renderer: 'svg',
         loop: true,
         autoplay: false,
-        path: 'animations/animation%20test_02.json'
+        path: 'animations/animation_test_02.json'
       });
 
       anim3 = lottie.loadAnimation({
@@ -104,7 +104,7 @@
         renderer: 'svg',
         loop: false,
         autoplay: false,
-        path: 'animations/animation%20test_03.json'
+        path: 'animations/animation_test_03.json'
       });
     };
 
@@ -120,53 +120,46 @@
       fadeIn(anim1Container);
       anim1.goToAndPlay(0, true);
 
-      anim1.addEventListener('complete', () => {
-        anim1.removeEventListener('complete');
-        showMessage(bottomMsg);
-      });
+      anim1.addEventListener('complete', onAnim1Complete);
+    };
+
+    const onAnim1Complete = () => {
+      anim1.removeEventListener('complete', onAnim1Complete);
+      showMessage(bottomMsg);
     };
 
     const nextStep = () => {
-      switch (currentStep) {
-        case 1:
-          currentStep = 2;
-          hideMessage(bottomMsg);
-          fadeOut(anim1Container);
-          setTimeout(() => {
-            fadeIn(anim2Container);
-            anim2.play();
-          }, 1000);
-
-          setTimeout(() => {
-            showMessage(bottomMsg);
-          }, 3000);
-          break;
-
-        case 2:
-          currentStep = 3;
-          hideMessage(bottomMsg);
-          anim2.stop();
-          fadeOut(anim2Container);
-
-          setTimeout(() => {
-            fadeIn(anim3Container);
-            anim3.goToAndPlay(0, true);
-          }, 1000);
-
-          anim3.addEventListener('complete', () => {
-            anim3.removeEventListener('complete');
-            showMessage(restartMsg);
-          });
-          break;
-
-        case 3:
-          currentStep = 0;
-          restart();
-          break;
+      if (currentStep === 1) {
+        currentStep = 2;
+        hideMessage(bottomMsg);
+        fadeOut(anim1Container);
+        setTimeout(() => {
+          fadeIn(anim2Container);
+          anim2.play();
+          setTimeout(() => showMessage(bottomMsg), 2000);
+        }, 1000);
+      } else if (currentStep === 2) {
+        currentStep = 3;
+        hideMessage(bottomMsg);
+        anim2.stop();
+        fadeOut(anim2Container);
+        setTimeout(() => {
+          fadeIn(anim3Container);
+          anim3.goToAndPlay(0, true);
+          anim3.addEventListener('complete', onAnim3Complete);
+        }, 1000);
+      } else if (currentStep === 3) {
+        currentStep = 0;
+        restartSequence();
       }
     };
 
-    const restart = () => {
+    const onAnim3Complete = () => {
+      anim3.removeEventListener('complete', onAnim3Complete);
+      showMessage(restartMsg);
+    };
+
+    const restartSequence = () => {
       hideMessage(restartMsg);
       fadeOut(anim3Container);
       setTimeout(() => {
@@ -176,15 +169,11 @@
         fadeIn(anim1Container);
         currentStep = 1;
         anim1.play();
-
-        anim1.addEventListener('complete', () => {
-          anim1.removeEventListener('complete');
-          showMessage(bottomMsg);
-        });
+        anim1.addEventListener('complete', onAnim1Complete);
       }, 1000);
     };
 
-    const tapHandler = () => {
+    const handleTap = () => {
       if (currentStep === 0) {
         startSequence();
       } else {
@@ -192,9 +181,9 @@
       }
     };
 
-    centerMsg.addEventListener('click', tapHandler);
-    bottomMsg.addEventListener('click', tapHandler);
-    restartMsg.addEventListener('click', tapHandler);
+    centerMsg.addEventListener('click', handleTap);
+    bottomMsg.addEventListener('click', handleTap);
+    restartMsg.addEventListener('click', handleTap);
 
     loadAnimations();
   </script>
