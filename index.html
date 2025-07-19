@@ -8,7 +8,6 @@
     body {
       margin: 0;
       background-color: #1a1a1a;
-      color: #ccc;
       font-family: Arial, sans-serif;
       overflow: hidden;
     }
@@ -23,7 +22,7 @@
       position: absolute;
       left: 50%;
       transform: translateX(-50%);
-      color: #ffff00; /* 黄色 */
+      color: #66ffff; /* 明るい水色 */
       font-size: 2rem;
       cursor: pointer;
       transition: opacity 0.5s ease;
@@ -33,11 +32,6 @@
     .hidden {
       opacity: 0;
       pointer-events: none;
-    }
-
-    #centerMessage {
-      top: 50%;
-      transform: translate(-50%, -50%);
     }
 
     #bottomMessage,
@@ -61,8 +55,122 @@
 </head>
 <body>
   <div id="container">
-    <div id="centerMessage" class="message">tap（click）</div>
+    <!-- 最初から下部に表示 -->
     <div id="bottomMessage" class="message hidden">tap（click）</div>
     <div id="restartMessage" class="message hidden">Restart</div>
-    <div id="anim1" class="lottie visible"></div>
-    <div id="anim2" class="
+
+    <div id="anim1" class="lottie"></div>
+    <div id="anim2" class="lottie"></div>
+    <div id="anim3" class="lottie"></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.10.2/lottie.min.js"></script>
+  <script>
+    const anim1Container = document.getElementById('anim1');
+    const anim2Container = document.getElementById('anim2');
+    const anim3Container = document.getElementById('anim3');
+
+    const bottomMsg = document.getElementById('bottomMessage');
+    const restartMsg = document.getElementById('restartMessage');
+
+    let anim1, anim2, anim3;
+    let currentStep = 0;
+
+    const loadAnimations = () => {
+      anim1 = lottie.loadAnimation({
+        container: anim1Container,
+        renderer: 'svg',
+        loop: false,
+        autoplay: false,
+        path: 'animations/animation_test_01.json'
+      });
+
+      anim2 = lottie.loadAnimation({
+        container: anim2Container,
+        renderer: 'svg',
+        loop: true,
+        autoplay: false,
+        path: 'animations/animation_test_02.json'
+      });
+
+      anim3 = lottie.loadAnimation({
+        container: anim3Container,
+        renderer: 'svg',
+        loop: false,
+        autoplay: false,
+        path: 'animations/animation_test_03.json'
+      });
+
+      // animation_test_01.json が読み込まれたら最初のフレームを表示
+      anim1.addEventListener('DOMLoaded', () => {
+        anim1.goToAndStop(0, true);
+        fadeIn(anim1Container);
+        showMessage(bottomMsg);
+        currentStep = 1; // 初回待機状態として設定
+      });
+    };
+
+    const showMessage = (msg) => msg.classList.remove('hidden');
+    const hideMessage = (msg) => msg.classList.add('hidden');
+    const fadeIn = (el) => el.classList.add('visible');
+    const fadeOut = (el) => el.classList.remove('visible');
+
+    const onAnim1Complete = () => {
+      anim1.removeEventListener('complete', onAnim1Complete);
+      showMessage(bottomMsg);
+    };
+
+    const onAnim3Complete = () => {
+      anim3.removeEventListener('complete', onAnim3Complete);
+      showMessage(restartMsg);
+    };
+
+    const handleTap = () => {
+      if (currentStep === 1) {
+        // 再生スタート
+        hideMessage(bottomMsg);
+        anim1.goToAndPlay(0, true);
+        anim1.addEventListener('complete', onAnim1Complete);
+        currentStep = 2;
+      } else if (currentStep === 2) {
+        // 次：anim2へ
+        hideMessage(bottomMsg);
+        fadeOut(anim1Container);
+        setTimeout(() => {
+          fadeIn(anim2Container);
+          anim2.play();
+          setTimeout(() => showMessage(bottomMsg), 2000);
+          currentStep = 3;
+        }, 1000);
+      } else if (currentStep === 3) {
+        // 次：anim3へ（anim2再生中にそのままフェード）
+        hideMessage(bottomMsg);
+        fadeOut(anim2Container); // anim2はループのまま
+        setTimeout(() => {
+          fadeIn(anim3Container);
+          anim3.goToAndPlay(0, true);
+          anim3.addEventListener('complete', onAnim3Complete);
+          currentStep = 4;
+        }, 1000);
+      } else if (currentStep === 4) {
+        // Restart
+        hideMessage(restartMsg);
+        fadeOut(anim3Container);
+        setTimeout(() => {
+          anim1.goToAndStop(0, true);
+          anim2.stop();
+          anim3.stop();
+          fadeIn(anim1Container);
+          showMessage(bottomMsg);
+          currentStep = 1;
+        }, 1000);
+      }
+    };
+
+    bottomMsg.addEventListener('click', handleTap);
+    restartMsg.addEventListener('click', handleTap);
+
+    loadAnimations();
+  </script>
+</body>
+</html>
