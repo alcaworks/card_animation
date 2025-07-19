@@ -51,6 +51,28 @@
     .visible {
       opacity: 1;
     }
+
+    /* スマホ用調整 */
+    @media (max-width: 768px) {
+      #container {
+        height: 90vh;
+        padding-top: 5vh;
+      }
+
+      .message {
+        font-size: 1.5rem;
+      }
+
+      #bottomMessage,
+      #restartMessage {
+        bottom: 15%;
+      }
+
+      .lottie {
+        top: 10%;
+        height: 80%;
+      }
+    }
   </style>
 </head>
 <body>
@@ -101,12 +123,11 @@
         path: 'animations/animation_test_03.json'
       });
 
-      // animation_test_01.json が読み込まれたら最初のフレームを表示
       anim1.addEventListener('DOMLoaded', () => {
         anim1.goToAndStop(0, true);
         fadeIn(anim1Container);
         showMessage(bottomMsg);
-        currentStep = 1; // 初回待機状態として設定
+        currentStep = 1;
       });
     };
 
@@ -127,13 +148,11 @@
 
     const handleTap = () => {
       if (currentStep === 1) {
-        // 再生スタート
         hideMessage(bottomMsg);
         anim1.goToAndPlay(0, true);
         anim1.addEventListener('complete', onAnim1Complete);
         currentStep = 2;
       } else if (currentStep === 2) {
-        // 次：anim2へ
         hideMessage(bottomMsg);
         fadeOut(anim1Container);
         setTimeout(() => {
@@ -143,9 +162,8 @@
           currentStep = 3;
         }, 1000);
       } else if (currentStep === 3) {
-        // 次：anim3へ（anim2再生中にそのままフェード）
         hideMessage(bottomMsg);
-        fadeOut(anim2Container); // anim2はループのまま
+        fadeOut(anim2Container);
         setTimeout(() => {
           fadeIn(anim3Container);
           anim3.goToAndPlay(0, true);
@@ -153,7 +171,6 @@
           currentStep = 4;
         }, 1000);
       } else if (currentStep === 4) {
-        // Restart
         hideMessage(restartMsg);
         fadeOut(anim3Container);
         setTimeout(() => {
