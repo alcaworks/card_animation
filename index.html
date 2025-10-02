@@ -8,7 +8,6 @@
     body {
       margin: 0;
       background-color: #1a1a1a;
-      color: #ccc;
       font-family: Arial, sans-serif;
       overflow: hidden;
     }
@@ -23,7 +22,7 @@
       position: absolute;
       left: 50%;
       transform: translateX(-50%);
-      color: #999;
+      color: #66ffff; /* 明るい水色 */
       font-size: 2rem;
       cursor: pointer;
       transition: opacity 0.5s ease;
@@ -35,12 +34,8 @@
       pointer-events: none;
     }
 
-    #centerMessage {
-      top: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    #bottomMessage {
+    #bottomMessage,
+    #restartMessage {
       bottom: 5%;
     }
 
@@ -60,9 +55,10 @@
 </head>
 <body>
   <div id="container">
-    <div id="centerMessage" class="message">tap（click）</div>
+    <!-- 最初から下部に表示 -->
     <div id="bottomMessage" class="message hidden">tap（click）</div>
-    <div id="restartMessage" class="message hidden" style="bottom: 5%;">Restart</div>
+    <div id="restartMessage" class="message hidden">Restart</div>
+
     <div id="anim1" class="lottie"></div>
     <div id="anim2" class="lottie"></div>
     <div id="anim3" class="lottie"></div>
@@ -74,12 +70,10 @@
     const anim2Container = document.getElementById('anim2');
     const anim3Container = document.getElementById('anim3');
 
-    const centerMsg = document.getElementById('centerMessage');
     const bottomMsg = document.getElementById('bottomMessage');
     const restartMsg = document.getElementById('restartMessage');
 
     let anim1, anim2, anim3;
-
     let currentStep = 0;
 
     const loadAnimations = () => {
@@ -88,7 +82,7 @@
         renderer: 'svg',
         loop: false,
         autoplay: false,
-        path: 'card_SNA_01.json'
+        path: 'animations/card_SNA_01.json'
       });
 
       anim2 = lottie.loadAnimation({
@@ -96,7 +90,7 @@
         renderer: 'svg',
         loop: true,
         autoplay: false,
-        path: 'card_SNA_02.json'
+        path: 'animations/card_SNA_02.json'
       });
 
       anim3 = lottie.loadAnimation({
@@ -104,97 +98,77 @@
         renderer: 'svg',
         loop: false,
         autoplay: false,
-        path: 'card_SNA_03.json'
+        path: 'animations/card_SNA_03.json'
+      });
+
+      // card_SNA_01.json が読み込まれたら最初のフレームを表示
+      anim1.addEventListener('DOMLoaded', () => {
+        anim1.goToAndStop(0, true);
+        fadeIn(anim1Container);
+        showMessage(bottomMsg);
+        currentStep = 1; // 初回待機状態として設定
       });
     };
 
-    const hideMessage = (msg) => msg.classList.add('hidden');
     const showMessage = (msg) => msg.classList.remove('hidden');
-
+    const hideMessage = (msg) => msg.classList.add('hidden');
     const fadeIn = (el) => el.classList.add('visible');
     const fadeOut = (el) => el.classList.remove('visible');
 
-    const startSequence = () => {
-      currentStep = 1;
-      hideMessage(centerMsg);
-      fadeIn(anim1Container);
-      anim1.goToAndPlay(0, true);
-
-      anim1.addEventListener('complete', () => {
-        anim1.removeEventListener('complete');
-        showMessage(bottomMsg);
-      });
+    const onAnim1Complete = () => {
+      anim1.removeEventListener('complete', onAnim1Complete);
+      showMessage(bottomMsg);
     };
 
-    const nextStep = () => {
-      switch (currentStep) {
-        case 1:
-          currentStep = 2;
-          hideMessage(bottomMsg);
-          fadeOut(anim1Container);
-          setTimeout(() => {
-            fadeIn(anim2Container);
-            anim2.play();
-          }, 1000);
+    const onAnim3Complete = () => {
+      anim3.removeEventListener('complete', onAnim3Complete);
+      showMessage(restartMsg);
+    };
 
-          setTimeout(() => {
-            showMessage(bottomMsg);
-          }, 3000);
-          break;
-
-        case 2:
+    const handleTap = () => {
+      if (currentStep === 1) {
+        // 再生スタート
+        hideMessage(bottomMsg);
+        anim1.goToAndPlay(0, true);
+        anim1.addEventListener('complete', onAnim1Complete);
+        currentStep = 2;
+      } else if (currentStep === 2) {
+        // 次：anim2へ
+        hideMessage(bottomMsg);
+        fadeOut(anim1Container);
+        setTimeout(() => {
+          fadeIn(anim2Container);
+          anim2.play();
+          setTimeout(() => showMessage(bottomMsg), 2000);
           currentStep = 3;
-          hideMessage(bottomMsg);
+        }, 1000);
+      } else if (currentStep === 3) {
+        // 次：anim3へ（anim2再生中にそのままフェード）
+        hideMessage(bottomMsg);
+        fadeOut(anim2Container); // anim2はループのまま
+        setTimeout(() => {
+          fadeIn(anim3Container);
+          anim3.goToAndPlay(0, true);
+          anim3.addEventListener('complete', onAnim3Complete);
+          currentStep = 4;
+        }, 1000);
+      } else if (currentStep === 4) {
+        // Restart
+        hideMessage(restartMsg);
+        fadeOut(anim3Container);
+        setTimeout(() => {
+          anim1.goToAndStop(0, true);
           anim2.stop();
-          fadeOut(anim2Container);
-
-          setTimeout(() => {
-            fadeIn(anim3Container);
-            anim3.goToAndPlay(0, true);
-          }, 1000);
-
-          anim3.addEventListener('complete', () => {
-            anim3.removeEventListener('complete');
-            showMessage(restartMsg);
-          });
-          break;
-
-        case 3:
-          currentStep = 0;
-          restart();
-          break;
-      }
-    };
-
-    const restart = () => {
-      hideMessage(restartMsg);
-      fadeOut(anim3Container);
-      setTimeout(() => {
-        anim1.goToAndStop(0, true);
-        anim2.stop();
-        anim3.stop();
-        fadeIn(anim1Container);
-        currentStep = 1;
-        anim1.play();
-
-        anim1.addEventListener('complete', () => {
-          anim1.removeEventListener('complete');
+          anim3.stop();
+          fadeIn(anim1Container);
           showMessage(bottomMsg);
-        });
-      }, 1000);
-    };
-
-    const tapHandler = () => {
-      if (currentStep === 0) {
-        startSequence();
-      } else {
-        nextStep();
+          currentStep = 1;
+        }, 1000);
       }
     };
 
-    centerMsg.addEventListener('click', tapHandler);
-    bottomMsg.addEventListener('click', tapHandler);
-    restartMsg.addEventListener('click', tapHandler);
+    bottomMsg.addEventListener('click', handleTap);
+    restartMsg.addEventListener('click', handleTap);
 
     loadAnimations();
   </script>
