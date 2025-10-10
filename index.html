@@ -3,28 +3,61 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lottie Animation Sequence</title>
+  <title>Multi Lottie Animation Panels</title>
   <style>
     body {
       margin: 0;
       background-color: #1a1a1a;
       font-family: Arial, sans-serif;
-      overflow: hidden;
+      color: #66ffff;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 20px;
+      padding: 20px;
     }
 
-    #container {
-      width: 100vw;
-      height: 100vh;
+    .panel {
+      border: 1px solid #ffffff;
+      border-radius: 8px;
+      width: 320px;
+      height: 400px;
       position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background-color: #111;
+    }
+
+    .title {
+      text-align: center;
+      font-size: 1.5rem;
+      padding: 10px 0;
+      color: #66ffff;
+      border-bottom: 1px solid #ffffff33;
+    }
+
+    .lottie {
+      flex: 1;
+      position: relative;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+
+    .visible {
+      opacity: 1;
     }
 
     .message {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      color: #e57bff; /* 明るい水色 */
-      font-size: 2rem;
+      text-align: center;
+      font-size: 1.2rem;
+      color: #66ffff;
       cursor: pointer;
+      padding: 10px 0;
       transition: opacity 0.5s ease;
       user-select: none;
     }
@@ -33,144 +66,134 @@
       opacity: 0;
       pointer-events: none;
     }
-
-    #bottomMessage,
-    #restartMessage {
-      bottom: 5%;
-    }
-
-    .lottie {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      opacity: 0;
-      transition: opacity 1s ease;
-      pointer-events: none;
-    }
-
-    .visible {
-      opacity: 1;
-    }
   </style>
 </head>
 <body>
-  <div id="container">
-    <!-- 最初から下部に表示 -->
-    <div id="bottomMessage" class="message hidden">tap（click）</div>
-    <div id="restartMessage" class="message hidden">Restart</div>
 
-    <div id="anim1" class="lottie"></div>
-    <div id="anim2" class="lottie"></div>
-    <div id="anim3" class="lottie"></div>
+  <!-- 各パネル -->
+  <div id="panels-container">
+    <!-- パネルテンプレートはJSで自動生成 -->
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.10.2/lottie.min.js"></script>
   <script>
-    const anim1Container = document.getElementById('anim1');
-    const anim2Container = document.getElementById('anim2');
-    const anim3Container = document.getElementById('anim3');
+    // ======== 設定 =========
+    const TITLES = ["KAG", "NDT", "RAG", "TNW", "YUR"];
+    const COLOR = "#66ffff";
 
-    const bottomMsg = document.getElementById('bottomMessage');
-    const restartMsg = document.getElementById('restartMessage');
+    const container = document.getElementById("panels-container");
 
-    let anim1, anim2, anim3;
-    let currentStep = 0;
+    TITLES.forEach(title => {
+      const panel = document.createElement("div");
+      panel.className = "panel";
+      panel.innerHTML = `
+        <div class="title">${title}</div>
+        <div class="lottie-container">
+          <div id="${title}_anim1" class="lottie"></div>
+          <div id="${title}_anim2" class="lottie"></div>
+          <div id="${title}_anim3" class="lottie"></div>
+        </div>
+        <div id="${title}_msg" class="message hidden">tap（click）</div>
+        <div id="${title}_restart" class="message hidden">Restart</div>
+      `;
+      container.appendChild(panel);
+    });
 
-    const loadAnimations = () => {
+    // ======== 動作ロジック =========
+    const createAnimationSequence = (prefix) => {
+      const a1 = document.getElementById(`${prefix}_anim1`);
+      const a2 = document.getElementById(`${prefix}_anim2`);
+      const a3 = document.getElementById(`${prefix}_anim3`);
+      const msg = document.getElementById(`${prefix}_msg`);
+      const restartMsg = document.getElementById(`${prefix}_restart`);
+
+      let currentStep = 0;
+      let anim1, anim2, anim3;
+
+      const fadeIn = (el) => el.classList.add("visible");
+      const fadeOut = (el) => el.classList.remove("visible");
+      const showMsg = (m) => m.classList.remove("hidden");
+      const hideMsg = (m) => m.classList.add("hidden");
+
       anim1 = lottie.loadAnimation({
-        container: anim1Container,
-        renderer: 'svg',
+        container: a1,
+        renderer: "svg",
         loop: false,
         autoplay: false,
-        path: 'animations/card_SNA_01.json'
+        path: `animations/${prefix}_1.json`
       });
 
       anim2 = lottie.loadAnimation({
-        container: anim2Container,
-        renderer: 'svg',
+        container: a2,
+        renderer: "svg",
         loop: true,
         autoplay: false,
-        path: 'animations/card_SNA_02.json'
+        path: `animations/${prefix}_2.json`
       });
 
       anim3 = lottie.loadAnimation({
-        container: anim3Container,
-        renderer: 'svg',
+        container: a3,
+        renderer: "svg",
         loop: false,
         autoplay: false,
-        path: 'animations/card_SNA_03.json'
+        path: `animations/${prefix}_3.json`
       });
 
-      // card_SNA_01.json が読み込まれたら最初のフレームを表示
-      anim1.addEventListener('DOMLoaded', () => {
+      // 初期表示
+      anim1.addEventListener("DOMLoaded", () => {
         anim1.goToAndStop(0, true);
-        fadeIn(anim1Container);
-        showMessage(bottomMsg);
-        currentStep = 1; // 初回待機状態として設定
+        fadeIn(a1);
+        showMsg(msg);
+        currentStep = 1;
       });
+
+      const next = () => {
+        if (currentStep === 1) {
+          hideMsg(msg);
+          anim1.goToAndPlay(0, true);
+          anim1.addEventListener("complete", () => {
+            showMsg(msg);
+          }, { once: true });
+          currentStep = 2;
+        } else if (currentStep === 2) {
+          hideMsg(msg);
+          fadeOut(a1);
+          setTimeout(() => {
+            fadeIn(a2);
+            anim2.play();
+            setTimeout(() => showMsg(msg), 2000);
+            currentStep = 3;
+          }, 1000);
+        } else if (currentStep === 3) {
+          hideMsg(msg);
+          fadeOut(a2); // anim2は再生中にフェード
+          setTimeout(() => {
+            fadeIn(a3);
+            anim3.goToAndPlay(0, true);
+            anim3.addEventListener("complete", () => {
+              showMsg(restartMsg);
+            }, { once: true });
+            currentStep = 4;
+          }, 1000);
+        } else if (currentStep === 4) {
+          hideMsg(restartMsg);
+          fadeOut(a3);
+          setTimeout(() => {
+            anim1.goToAndStop(0, true);
+            anim2.stop();
+            anim3.stop();
+            fadeIn(a1);
+            showMsg(msg);
+            currentStep = 1;
+          }, 1000);
+        }
+      };
+
+      msg.addEventListener("click", next);
+      restartMsg.addEventListener("click", next);
     };
 
-    const showMessage = (msg) => msg.classList.remove('hidden');
-    const hideMessage = (msg) => msg.classList.add('hidden');
-    const fadeIn = (el) => el.classList.add('visible');
-    const fadeOut = (el) => el.classList.remove('visible');
-
-    const onAnim1Complete = () => {
-      anim1.removeEventListener('complete', onAnim1Complete);
-      showMessage(bottomMsg);
-    };
-
-    const onAnim3Complete = () => {
-      anim3.removeEventListener('complete', onAnim3Complete);
-      showMessage(restartMsg);
-    };
-
-    const handleTap = () => {
-      if (currentStep === 1) {
-        // 再生スタート
-        hideMessage(bottomMsg);
-        anim1.goToAndPlay(0, true);
-        anim1.addEventListener('complete', onAnim1Complete);
-        currentStep = 2;
-      } else if (currentStep === 2) {
-        // 次：anim2へ
-        hideMessage(bottomMsg);
-        fadeOut(anim1Container);
-        setTimeout(() => {
-          fadeIn(anim2Container);
-          anim2.play();
-          setTimeout(() => showMessage(bottomMsg), 2000);
-          currentStep = 3;
-        }, 1000);
-      } else if (currentStep === 3) {
-        // 次：anim3へ（anim2再生中にそのままフェード）
-        hideMessage(bottomMsg);
-        fadeOut(anim2Container); // anim2はループのまま
-        setTimeout(() => {
-          fadeIn(anim3Container);
-          anim3.goToAndPlay(0, true);
-          anim3.addEventListener('complete', onAnim3Complete);
-          currentStep = 4;
-        }, 1000);
-      } else if (currentStep === 4) {
-        // Restart
-        hideMessage(restartMsg);
-        fadeOut(anim3Container);
-        setTimeout(() => {
-          anim1.goToAndStop(0, true);
-          anim2.stop();
-          anim3.stop();
-          fadeIn(anim1Container);
-          showMessage(bottomMsg);
-          currentStep = 1;
-        }, 1000);
-      }
-    };
-
-    bottomMsg.addEventListener('click', handleTap);
-    restartMsg.addEventListener('click', handleTap);
-
-    loadAnimations();
+    TITLES.forEach(t => createAnimationSequence(t));
   </script>
 </body>
 </html>
