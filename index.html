@@ -3,26 +3,30 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Multi Lottie Animation Panels - Fixed</title>
+  <title>Multi Lottie Animation Panels</title>
   <style>
     :root{
-      --accent: #66ffff; /* 明るい水色 */
+      --accent: #66ffff;
       --bg: #1a1a1a;
       --panel-bg: #111;
       --border: rgba(255,255,255,0.9);
     }
-    html,body{height:100%;margin:0;background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--accent)}
+    html,body{
+      height:100%;
+      margin:0;
+      background:var(--bg);
+      font-family:Arial,Helvetica,sans-serif;
+      color:var(--accent);
+    }
     body{
       display:flex;
       justify-content:center;
       align-items:flex-start;
+      flex-wrap:wrap;
       gap:20px;
       padding:20px;
       box-sizing:border-box;
-      flex-wrap:wrap;
     }
-
-    /* パネル */
     .panel{
       width:320px;
       height:420px;
@@ -32,271 +36,157 @@
       overflow:hidden;
       display:flex;
       flex-direction:column;
-      box-sizing:border-box;
       position:relative;
+      transition:all 0.3s ease;
     }
-
     .title{
       padding:10px;
       text-align:center;
-      font-size:1.2rem;
+      font-size:1.4rem;
       color:var(--accent);
-      border-bottom:1px solid rgba(255,255,255,0.12);
+      border-bottom:1px solid rgba(255,255,255,0.2);
     }
-
-    /* ここが重要：親をflexで伸ばす */
     .lottie-container{
-      flex:1;                 /* これで親が残り領域を確保 */
+      flex:1;
       position:relative;
-      min-height:200px;
+      min-height:300px;
     }
-
-    /* Lottie表示領域は絶対で全面に被せる */
     .lottie{
       position:absolute;
-      left:0; top:0; width:100%; height:100%;
+      left:0; top:0;
+      width:100%;
+      height:100%;
       opacity:0;
       transition:opacity .6s ease;
-      pointer-events:none;
     }
-    .lottie.visible{ opacity:1; pointer-events:auto; }
-
-    /* メッセージはパネル内の下部に固定 */
+    .lottie.visible{opacity:1;}
     .message{
       position:absolute;
       left:50%;
       transform:translateX(-50%);
-      bottom:8px;
-      font-size:1.0rem;
+      bottom:10px;
+      font-size:1.2rem;
       color:var(--accent);
       cursor:pointer;
-      background:transparent;
       padding:6px 12px;
-      border-radius:6px;
       user-select:none;
-      transition:opacity .25s ease, transform .08s ease;
-      z-index:50;
+      transition:opacity 0.3s ease;
+      z-index:10;
     }
-    .message:active{ transform:translateX(-50%) scale(.98); }
-    .message.hidden{ opacity:0; pointer-events:none; }
-
-    /* Restart を少し目立たせても良い */
-    .message.restart{ font-weight:600; }
-
-    /* レスポンシブ */
+    .message.hidden{opacity:0;pointer-events:none;}
+    .message.restart{font-weight:bold;}
     @media (max-width:1000px){
-      .panel{ width:46%; }
+      .panel{ width:45%; height:500px; }
+      .lottie-container{ min-height:350px; }
     }
     @media (max-width:600px){
-      .panel{ width:100%; }
+      .panel{
+        width:90%;
+        height:70vh;
+      }
+      .title{ font-size:1.6rem; }
+      .message{ font-size:1.4rem; bottom:14px; }
+      .lottie-container{ min-height:400px; }
     }
   </style>
 </head>
 <body>
-
   <div id="panels-container"></div>
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.10.2/lottie.min.js"></script>
   <script>
-    /*******************************
-     * Config
-     *******************************/
     const TITLES = ["KAG","NDT","RAG","TNW","YUR"];
-    const ANIM_PATH = (prefix, idx) => `animations/${prefix}_${idx}.json`; // 1,2,3
-    const panelsContainer = document.getElementById("panels-container");
+    const ANIM_PATH = (prefix, idx) => `animations/${prefix}_${idx}.json`;
+    const container = document.getElementById("panels-container");
 
-    /*******************************
-     * Create panels in DOM
-     *******************************/
     TITLES.forEach(title => {
       const panel = document.createElement("div");
       panel.className = "panel";
       panel.innerHTML = `
         <div class="title">${title}</div>
         <div class="lottie-container">
-          <div id="${title}_anim1" class="lottie" aria-hidden="true"></div>
-          <div id="${title}_anim2" class="lottie" aria-hidden="true"></div>
-          <div id="${title}_anim3" class="lottie" aria-hidden="true"></div>
+          <div id="${title}_anim1" class="lottie"></div>
+          <div id="${title}_anim2" class="lottie"></div>
+          <div id="${title}_anim3" class="lottie"></div>
         </div>
-        <div id="${title}_msg" class="message hidden" role="button" aria-label="tap">tap（click）</div>
-        <div id="${title}_restart" class="message hidden restart" role="button" aria-label="restart">Restart</div>
+        <div id="${title}_msg" class="message hidden">tap（click）</div>
+        <div id="${title}_restart" class="message hidden restart">Restart</div>
       `;
-      panelsContainer.appendChild(panel);
+      container.appendChild(panel);
     });
 
-    /*******************************
-     * Helper: async path check (optional but helpful)
-     *******************************/
-    async function checkJson(path){
-      try {
-        // HEAD may be blocked on some hosts; GET but with no body parse to minimize cost
-        const res = await fetch(path, { method: 'GET', cache: 'no-store' });
-        return res.ok;
-      }catch(err){
-        return false;
-      }
-    }
+    function createSequence(prefix){
+      const a1=document.getElementById(`${prefix}_anim1`);
+      const a2=document.getElementById(`${prefix}_anim2`);
+      const a3=document.getElementById(`${prefix}_anim3`);
+      const msg=document.getElementById(`${prefix}_msg`);
+      const restart=document.getElementById(`${prefix}_restart`);
+      let current=0;
 
-    /*******************************
-     * create sequence logic per panel
-     *******************************/
-    function createAnimationSequence(prefix){
-      const a1 = document.getElementById(`${prefix}_anim1`);
-      const a2 = document.getElementById(`${prefix}_anim2`);
-      const a3 = document.getElementById(`${prefix}_anim3`);
-      const msg = document.getElementById(`${prefix}_msg`);
-      const restartMsg = document.getElementById(`${prefix}_restart`);
+      const fadeIn=el=>el.classList.add("visible");
+      const fadeOut=el=>el.classList.remove("visible");
+      const show=m=>m.classList.remove("hidden");
+      const hide=m=>m.classList.add("hidden");
 
-      let anim1, anim2, anim3;
-      let currentStep = 0; // 0=not ready, 1=idle (first frame shown), 2=first finished (ready->2->3 etc), 3=anim2 displayed, 4=anim3 displayed
+      const anim1=lottie.loadAnimation({container:a1,renderer:"svg",loop:false,autoplay:false,path:ANIM_PATH(prefix,1)});
+      const anim2=lottie.loadAnimation({container:a2,renderer:"svg",loop:true,autoplay:false,path:ANIM_PATH(prefix,2)});
+      const anim3=lottie.loadAnimation({container:a3,renderer:"svg",loop:false,autoplay:false,path:ANIM_PATH(prefix,3)});
 
-      // debug helper
-      const dlog = (...args) => console.log(`[${prefix}]`, ...args);
+      anim1.addEventListener("DOMLoaded",()=>{
+        anim1.goToAndStop(0,true);
+        fadeIn(a1);
+        show(msg);
+        current=1;
+      });
 
-      // 1) simple existence check (logs helpful if file missing)
-      (async ()=>{
-        const p1 = ANIM_PATH(prefix,1);
-        const p2 = ANIM_PATH(prefix,2);
-        const p3 = ANIM_PATH(prefix,3);
-
-        const ok1 = await checkJson(p1);
-        const ok2 = await checkJson(p2);
-        const ok3 = await checkJson(p3);
-
-        if(!ok1) console.error(`[${prefix}] missing or not reachable: ${p1}`);
-        if(!ok2) console.error(`[${prefix}] missing or not reachable: ${p2}`);
-        if(!ok3) console.error(`[${prefix}] missing or not reachable: ${p3}`);
-
-        // proceed to load even if some missing - lottie will also log if it fails
-        load();
-      })();
-
-      function load(){
-        // load Lottie animations
-        anim1 = lottie.loadAnimation({
-          container: a1,
-          renderer: 'svg',
-          loop: false,
-          autoplay: false,
-          path: ANIM_PATH(prefix,1)
-        });
-
-        anim2 = lottie.loadAnimation({
-          container: a2,
-          renderer: 'svg',
-          loop: true,
-          autoplay: false,
-          path: ANIM_PATH(prefix,2)
-        });
-
-        anim3 = lottie.loadAnimation({
-          container: a3,
-          renderer: 'svg',
-          loop: false,
-          autoplay: false,
-          path: ANIM_PATH(prefix,3)
-        });
-
-        // debug events
-        anim1.addEventListener('DOMLoaded', () => {
-          dlog('anim1 DOMLoaded');
-          // show first frame and show tap
-          try{ anim1.goToAndStop(0, true); } catch(e){ dlog('goToAndStop failed', e); }
-          a1.classList.add('visible');
-          msg.classList.remove('hidden');
-          currentStep = 1;
-        });
-
-        anim2.addEventListener('DOMLoaded', ()=> dlog('anim2 DOMLoaded'));
-        anim3.addEventListener('DOMLoaded', ()=> dlog('anim3 DOMLoaded'));
-
-        anim1.addEventListener('error', (e)=> dlog('anim1 error', e));
-        anim2.addEventListener('error', (e)=> dlog('anim2 error', e));
-        anim3.addEventListener('error', (e)=> dlog('anim3 error', e));
-      }
-
-      // transitions
-      const fadeIn = (el) => el.classList.add('visible');
-      const fadeOut = (el) => el.classList.remove('visible');
-
-      // core next step when tapping the bottom message
-      const next = () => {
-        dlog('next called, step=', currentStep);
-        if(currentStep === 1){
-          // start first animation play
-          msg.classList.add('hidden');
-          try{ anim1.goToAndPlay(0, true); } catch(e){ dlog('play anim1 failed', e); }
-          // when first completes, show msg again and set to step 2
-          anim1.addEventListener('complete', function onC(){
-            anim1.removeEventListener('complete', onC);
-            msg.classList.remove('hidden');
-            currentStep = 2;
-            dlog('anim1 complete -> step 2');
-          });
-          currentStep = 1.5; // intermediate playing
-        } else if(currentStep === 2){
-          // transition to anim2
-          msg.classList.add('hidden');
-          // fade out anim1 but keep it in DOM (anim1 is non-looping)
+      const next=()=>{
+        if(current===1){
+          hide(msg);
+          anim1.goToAndPlay(0,true);
+          anim1.addEventListener("complete",()=>{
+            show(msg);
+            current=2;
+          },{once:true});
+        }else if(current===2){
+          hide(msg);
           fadeOut(a1);
           setTimeout(()=>{
             fadeIn(a2);
-            try{ anim2.play(); } catch(e){ dlog('play anim2 failed', e); }
-            // show tap after slight delay so user can tap anim2 while looping
-            setTimeout(()=> { msg.classList.remove('hidden'); }, 1400);
-            currentStep = 3;
-            dlog('switched to anim2 -> step 3');
-          }, 600); // slightly quicker fade timing
-        } else if(currentStep === 3){
-          // transition to anim3 (anim2 should keep looping while we fade)
-          msg.classList.add('hidden');
-          // fade anim2 (but do NOT stop it here; let it keep looping during fade)
+            anim2.play();
+            setTimeout(()=>show(msg),1500);
+            current=3;
+          },600);
+        }else if(current===3){
+          hide(msg);
           fadeOut(a2);
           setTimeout(()=>{
             fadeIn(a3);
-            try{ anim3.goToAndPlay(0, true); } catch(e){ dlog('play anim3 failed', e); }
-            // when anim3 completes, show Restart
-            anim3.addEventListener('complete', function onC3(){
-              anim3.removeEventListener('complete', onC3);
-              restartMsg.classList.remove('hidden');
-              currentStep = 4;
-              dlog('anim3 complete -> step 4 (show Restart)');
-            });
-          }, 600);
-        } else if(currentStep === 4){
-          // Restart flow: hide restart, reset to first frame
-          restartMsg.classList.add('hidden');
+            anim3.goToAndPlay(0,true);
+            anim3.addEventListener("complete",()=>{
+              show(restart);
+              current=4;
+            },{once:true});
+          },600);
+        }else if(current===4){
+          hide(restart);
           fadeOut(a3);
           setTimeout(()=>{
-            try{ anim1.goToAndStop(0, true); } catch(e){ dlog('goToAndStop failed', e); }
-            // stop other anims to conserve CPU
-            try{ anim2.stop(); anim3.stop(); } catch(e){}
-            // show anim1 static frame again
+            anim1.goToAndStop(0,true);
+            anim2.stop();
+            anim3.stop();
             fadeIn(a1);
-            msg.classList.remove('hidden');
-            currentStep = 1;
-            dlog('restarted -> step 1');
-          }, 600);
-        } else {
-          dlog('next() ignored - not ready yet (step=' + currentStep + ')');
+            show(msg);
+            current=1;
+          },600);
         }
       };
 
-      // attach both click and touch handlers for reliability on mobile
-      const attachHandler = (el) => {
-        el.addEventListener('click', (e)=>{ e.preventDefault(); next(); });
-        el.addEventListener('touchstart', (e)=>{ e.preventDefault(); next(); }, {passive:false});
-      };
-      attachHandler(msg);
-      attachHandler(restartMsg);
+      msg.addEventListener("click",next);
+      restart.addEventListener("click",next);
+      msg.addEventListener("touchstart",e=>{e.preventDefault();next();},{passive:false});
+      restart.addEventListener("touchstart",e=>{e.preventDefault();next();},{passive:false});
     }
 
-    // initialize all panels
-    TITLES.forEach(t => createAnimationSequence(t));
-
-    /* Helpful note printed to console so you can debug quickly */
-    console.log('Panels created. Check developer console (Network & Console) if animations are not visible.');
-    console.log('Ensure the folder "animations/" exists and contains files named EXACTLY like "KAG_1.json", "KAG_2.json", "KAG_3.json", etc. (case-sensitive).');
+    TITLES.forEach(t=>createSequence(t));
   </script>
 </body>
 </html>
