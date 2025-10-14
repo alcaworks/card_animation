@@ -75,114 +75,51 @@
     }
     .message.hidden{opacity:0;pointer-events:none;}
     .message.restart{font-weight:bold;}
+
+    /* タブレットサイズ対応 */
     @media (max-width:1000px){
       .panel{ width:45%; height:500px; }
       .lottie-container{ min-height:350px; }
     }
-    @media (max-width:600px){
-      .panel{
-        width:90%;
-        height:70vh;
+
+    /* 📱 スマートフォン用拡大レイアウト */
+    @media (max-width:700px){
+      body{
+        flex-direction:column;
+        align-items:center;
       }
-      .title{ font-size:1.6rem; }
-      .message{ font-size:1.4rem; bottom:14px; }
-      .lottie-container{ min-height:400px; }
+      .panel{
+        width:95%;
+        max-width:600px;
+        height:550px; /* ← 高さを確保して縦長回避 */
+      }
+      .title{
+        font-size:1.6rem;
+        padding:12px 0;
+      }
+      .lottie-container{
+        min-height:430px; /* ← アニメ領域を大きく確保 */
+      }
+      .message{
+        font-size:1.4rem;
+        bottom:18px;
+      }
+    }
+
+    /* 特に小さいスマホ（iPhone SEなど）用 */
+    @media (max-width:400px){
+      .panel{
+        height:500px;
+      }
+      .lottie-container{
+        min-height:400px;
+      }
+      .message{
+        font-size:1.2rem;
+      }
     }
   </style>
 </head>
 <body>
   <div id="panels-container"></div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.10.2/lottie.min.js"></script>
-  <script>
-    const TITLES = ["KAG","NDT","RAG","TNW","YUR"];
-    const ANIM_PATH = (prefix, idx) => `animations/${prefix}_${idx}.json`;
-    const container = document.getElementById("panels-container");
-
-    TITLES.forEach(title => {
-      const panel = document.createElement("div");
-      panel.className = "panel";
-      panel.innerHTML = `
-        <div class="title">${title}</div>
-        <div class="lottie-container">
-          <div id="${title}_anim1" class="lottie"></div>
-          <div id="${title}_anim2" class="lottie"></div>
-          <div id="${title}_anim3" class="lottie"></div>
-        </div>
-        <div id="${title}_msg" class="message hidden">tap（click）</div>
-        <div id="${title}_restart" class="message hidden restart">Restart</div>
-      `;
-      container.appendChild(panel);
-    });
-
-    function createSequence(prefix){
-      const a1=document.getElementById(`${prefix}_anim1`);
-      const a2=document.getElementById(`${prefix}_anim2`);
-      const a3=document.getElementById(`${prefix}_anim3`);
-      const msg=document.getElementById(`${prefix}_msg`);
-      const restart=document.getElementById(`${prefix}_restart`);
-      let current=0;
-
-      const fadeIn=el=>el.classList.add("visible");
-      const fadeOut=el=>el.classList.remove("visible");
-      const show=m=>m.classList.remove("hidden");
-      const hide=m=>m.classList.add("hidden");
-
-      const anim1=lottie.loadAnimation({container:a1,renderer:"svg",loop:false,autoplay:false,path:ANIM_PATH(prefix,1)});
-      const anim2=lottie.loadAnimation({container:a2,renderer:"svg",loop:true,autoplay:false,path:ANIM_PATH(prefix,2)});
-      const anim3=lottie.loadAnimation({container:a3,renderer:"svg",loop:false,autoplay:false,path:ANIM_PATH(prefix,3)});
-
-      anim1.addEventListener("DOMLoaded",()=>{
-        anim1.goToAndStop(0,true);
-        fadeIn(a1);
-        show(msg);
-        current=1;
-      });
-
-      const next=()=>{
-        if(current===1){
-          hide(msg);
-          anim1.goToAndPlay(0,true);
-          anim1.addEventListener("complete",()=>{
-            fadeOut(a1);
-            setTimeout(()=>{
-              fadeIn(a2);
-              anim2.play();
-              setTimeout(()=>show(msg),1500);
-              current=3;
-            },600);
-          },{once:true});
-        }else if(current===3){
-          hide(msg);
-          fadeOut(a2);
-          setTimeout(()=>{
-            fadeIn(a3);
-            anim3.goToAndPlay(0,true);
-            anim3.addEventListener("complete",()=>{
-              show(restart);
-              current=4;
-            },{once:true});
-          },600);
-        }else if(current===4){
-          hide(restart);
-          fadeOut(a3);
-          setTimeout(()=>{
-            anim1.goToAndStop(0,true);
-            anim2.stop();
-            anim3.stop();
-            fadeIn(a1);
-            show(msg);
-            current=1;
-          },600);
-        }
-      };
-
-      msg.addEventListener("click",next);
-      restart.addEventListener("click",next);
-      msg.addEventListener("touchstart",e=>{e.preventDefault();next();},{passive:false});
-      restart.addEventListener("touchstart",e=>{e.preventDefault();next();},{passive:false});
-    }
-
-    TITLES.forEach(t=>createSequence(t));
-  </script>
-</body>
-</html>
