@@ -32,7 +32,6 @@
       overflow-x: hidden;
     }
 
-    /* 固定サイズ（PC基準） */
     .panel {
       width: 360px;
       height: 480px;
@@ -76,13 +75,18 @@
     }
 
     .message {
-      text-align: center;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 28px; /* ← ★ここを上方向にオフセットして枠線と重ならないように */
       font-size: 1.2rem;
       color: var(--accent);
       cursor: pointer;
-      padding: 8px 0;
+      padding: 6px 12px;
       user-select: none;
       transition: opacity 0.3s ease;
+      z-index: 10;
+      text-shadow: 0 0 4px rgba(0,0,0,0.5);
     }
 
     .message.hidden {
@@ -181,14 +185,3 @@
           },600);
         }
       };
-
-      msg.addEventListener("click",next);
-      restart.addEventListener("click",next);
-      msg.addEventListener("touchstart",e=>{e.preventDefault();next();},{passive:false});
-      restart.addEventListener("touchstart",e=>{e.preventDefault();next();},{passive:false});
-    }
-
-    TITLES.forEach(t=>createSequence(t));
-  </script>
-</body>
-</html>
