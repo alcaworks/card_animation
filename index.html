@@ -75,18 +75,48 @@
     }
     .message.hidden{opacity:0;pointer-events:none;}
     .message.restart{font-weight:bold;}
+
+    /* タブレットサイズ対応 */
     @media (max-width:1000px){
       .panel{ width:45%; height:500px; }
       .lottie-container{ min-height:350px; }
     }
-    @media (max-width:600px){
-      .panel{
-        width:90%;
-        height:70vh;
+
+    /* 📱 スマートフォン用拡大レイアウト */
+    @media (max-width:700px){
+      body{
+        flex-direction:column;
+        align-items:center;
       }
-      .title{ font-size:1.6rem; }
-      .message{ font-size:1.4rem; bottom:14px; }
-      .lottie-container{ min-height:400px; }
+      .panel{
+        width:95%;
+        max-width:600px;
+        height:550px; /* ← 高さを確保して縦長回避 */
+      }
+      .title{
+        font-size:1.6rem;
+        padding:12px 0;
+      }
+      .lottie-container{
+        min-height:430px; /* ← アニメ領域を大きく確保 */
+      }
+      .message{
+        font-size:1.4rem;
+        bottom:18px;
+      }
+    }
+
+    /* 特に小さいスマホ（iPhone SEなど）用 */
+    @media (max-width:400px){
+      .panel{
+        height:500px;
+      }
+      .lottie-container{
+        min-height:400px;
+      }
+      .message{
+        font-size:1.2rem;
+      }
     }
   </style>
 </head>
