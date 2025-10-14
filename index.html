@@ -143,18 +143,14 @@
           hide(msg);
           anim1.goToAndPlay(0,true);
           anim1.addEventListener("complete",()=>{
-            show(msg);
-            current=2;
+            fadeOut(a1);
+            setTimeout(()=>{
+              fadeIn(a2);
+              anim2.play();
+              setTimeout(()=>show(msg),1500);
+              current=3;
+            },600);
           },{once:true});
-        }else if(current===2){
-          hide(msg);
-          fadeOut(a1);
-          setTimeout(()=>{
-            fadeIn(a2);
-            anim2.play();
-            setTimeout(()=>show(msg),1500);
-            current=3;
-          },600);
         }else if(current===3){
           hide(msg);
           fadeOut(a2);
