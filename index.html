@@ -5,123 +5,99 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Multi Lottie Animation Panels</title>
   <style>
-    :root{
+    :root {
       --accent: #66ffff;
       --bg: #1a1a1a;
       --panel-bg: #111;
-      --border: rgba(255,255,255,0.9);
-    }
-    html,body{
-      height:100%;
-      margin:0;
-      background:var(--bg);
-      font-family:Arial,Helvetica,sans-serif;
-      color:var(--accent);
-    }
-    body{
-      display:flex;
-      justify-content:center;
-      align-items:flex-start;
-      flex-wrap:wrap;
-      gap:20px;
-      padding:20px;
-      box-sizing:border-box;
-    }
-    .panel{
-      width:320px;
-      height:420px;
-      background:var(--panel-bg);
-      border:1px solid var(--border);
-      border-radius:8px;
-      overflow:hidden;
-      display:flex;
-      flex-direction:column;
-      position:relative;
-      transition:all 0.3s ease;
-    }
-    .title{
-      padding:10px;
-      text-align:center;
-      font-size:1.4rem;
-      color:var(--accent);
-      border-bottom:1px solid rgba(255,255,255,0.2);
-    }
-    .lottie-container{
-      flex:1;
-      position:relative;
-      min-height:300px;
-    }
-    .lottie{
-      position:absolute;
-      left:0; top:0;
-      width:100%;
-      height:100%;
-      opacity:0;
-      transition:opacity .6s ease;
-    }
-    .lottie.visible{opacity:1;}
-    .message{
-      position:absolute;
-      left:50%;
-      transform:translateX(-50%);
-      bottom:10px;
-      font-size:1.2rem;
-      color:var(--accent);
-      cursor:pointer;
-      padding:6px 12px;
-      user-select:none;
-      transition:opacity 0.3s ease;
-      z-index:10;
-    }
-    .message.hidden{opacity:0;pointer-events:none;}
-    .message.restart{font-weight:bold;}
-
-    /* タブレットサイズ対応 */
-    @media (max-width:1000px){
-      .panel{ width:45%; height:500px; }
-      .lottie-container{ min-height:350px; }
+      --border: rgba(255, 255, 255, 0.9);
     }
 
-    /* 📱 スマートフォン用拡大レイアウト */
-    @media (max-width:700px){
-      body{
-        flex-direction:column;
-        align-items:center;
-      }
-      .panel{
-        width:95%;
-        max-width:600px;
-        height:550px; /* ← 高さを確保して縦長回避 */
-      }
-      .title{
-        font-size:1.6rem;
-        padding:12px 0;
-      }
-      .lottie-container{
-        min-height:430px; /* ← アニメ領域を大きく確保 */
-      }
-      .message{
-        font-size:1.4rem;
-        bottom:18px;
-      }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--accent);
+      font-family: Arial, Helvetica, sans-serif;
     }
 
-    /* 特に小さいスマホ（iPhone SEなど）用 */
-    @media (max-width:400px){
-      .panel{
-        height:500px;
-      }
-      .lottie-container{
-        min-height:400px;
-      }
-      .message{
-        font-size:1.2rem;
-      }
+    body {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 24px;
+      padding: 40px;
+      box-sizing: border-box;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    /* 固定サイズ（PC基準） */
+    .panel {
+      width: 360px;
+      height: 480px;
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      position: relative;
+      box-sizing: border-box;
+    }
+
+    .title {
+      text-align: center;
+      font-size: 1.4rem;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .lottie-container {
+      position: relative;
+      flex: 1;
+      min-height: 400px;
+      width: 100%;
+    }
+
+    .lottie {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+    }
+
+    .lottie.visible {
+      opacity: 1;
+    }
+
+    .message {
+      text-align: center;
+      font-size: 1.2rem;
+      color: var(--accent);
+      cursor: pointer;
+      padding: 8px 0;
+      user-select: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .message.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .message.restart {
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <div id="panels-container"></div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.10.2/lottie.min.js"></script>
   <script>
     const TITLES = ["KAG","NDT","RAG","TNW","YUR"];
