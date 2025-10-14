@@ -185,3 +185,14 @@
           },600);
         }
       };
+
+      msg.addEventListener("click",next);
+      restart.addEventListener("click",next);
+      msg.addEventListener("touchstart",e=>{e.preventDefault();next();},{passive:false});
+      restart.addEventListener("touchstart",e=>{e.preventDefault();next();},{passive:false});
+    }
+
+    TITLES.forEach(t=>createSequence(t));
+  </script>
+</body>
+</html>
